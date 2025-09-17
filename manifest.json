@@ -1,10 +1,15 @@
 {
-  "name": "LIA",
-  "short_name": "LIA",
+  "name": "Lia",
+  "short_name": "Lia",
+  "description": "Comunidade interativa com chat, filmes, jogos e muito mais.",
   "start_url": "index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#212121",
+  "background_color": "#000000",
+  "theme_color": "#8B0000",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "categories": ["social", "education", "entertainment"],
   "icons": [
     {
       "src": "icon192.png",
@@ -14,18 +19,6 @@
     {
       "src": "icon512.png",
       "sizes": "512x512",
-      "type": "image/png"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...==",
-      "sizes": "1080x1920",
-      "type": "image/png"
-    },
-    {
-      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...==",
-      "sizes": "1080x1920",
       "type": "image/png"
     }
   ]
