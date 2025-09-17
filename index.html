@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIA Chat Bot</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon192.png">
+<style>
+body{margin:0;padding:0;background:#121212;color:white;font-family:sans-serif;}
+header{display:flex;align-items:center;gap:10px;padding:0.5rem 1rem;font-weight:900;background:#1e1e1e;}
+header a{color:white;text-decoration:none;margin-left:1rem;padding:0.2rem 0.5rem;border-radius:5px;transition:0.2s;}
+header a:hover{background:#ff4d4d;}
+#chat{width:100%;height:60vh;overflow-y:auto;padding:0.5rem;display:flex;flex-direction:column;gap:0.5rem;background:transparent;}
+.msg{max-width:70%;padding:10px 15px;border-radius:15px;font-size:14px;line-height:1.4;word-wrap:break-word;}
+.msg.user{align-self:flex-end;background:darkred;color:white;border-bottom-right-radius:0;}
+.msg.bot{align-self:flex-start;background:#e5e5ea;color:#333;border-bottom-left-radius:0;}
+#mensagens{display:flex;gap:0.5rem;padding:0.5rem;background:#1e1e1e;position:fixed;bottom:0;width:100%;box-sizing:border-box;}
+#mensagens input{flex:1;padding:12px;border-radius:10px;background:#212121;border:1px solid #555;color:white;outline:none;}
+#mensagens button{padding:12px 20px;border-radius:10px;background:darkred;color:white;border:none;cursor:pointer;font-weight:700;transition:0.2s;}
+#mensagens button:hover{background:#e63946;}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="icon192.png" alt="LIA" style="width:2rem;height:2rem;border-radius:20px;">
+  <a href="index.html"><span>LIA</span></a>
+  <a href="musica.html">Músicas</a>
+  <a href="geo.html">Geo</a>
+  <a href="jogo.html">Jogo</a>
+</header>
+
+<div id="chat"></div>
+
+<div id="mensagens">
+  <input type="text" id="textoDousuario" placeholder="Digite sua mensagem">
+  <button onclick="send()">Enviar</button>
+</div>
+
+<script>
+// Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('service-worker.js').then(()=>console.log('SW registrado'));
+}
+
+// Chat Bot
+const messagesDiv = document.getElementById("chat");
+const input = document.getElementById("textoDousuario");
+let chatHistory = JSON.parse(localStorage.getItem("liaChatHistory") || "[]");
+let knowledge = JSON.parse(localStorage.getItem("liaKnowledge") || "{}");
+
+function speak(text){
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "pt-BR";
+  window.speechSynthesis.speak(utter);
+}
+
+function addMessage(text,sender){
+  const div=document.createElement("div");
+  div.className="msg "+sender;
+  div.textContent=text;
+  messagesDiv.appendChild(div);
+  messagesDiv.scrollTop=messagesDiv.scrollHeight;
+  // Salvar conversa
+  chatHistory.push({sender,text});
+  localStorage.setItem("liaChatHistory", JSON.stringify(chatHistory));
+}
+
+// Restaurar histórico
+chatHistory.forEach(m=>addMessage(m.text,m.sender));
+
+// Primeira mensagem se histórico vazio
+if(chatHistory.length===0){
+  const promo = "Olá! Conheça minha comunidade: https://laison12.github.io/The-Laison/index.html 🌟";
+  addMessage(promo,"bot");
+  speak(promo);
+}
+
+function evaluateMath(expr){
+  try{
+    expr = expr.replace(/\^/g,'**');
+    expr = expr.replace(/sen\(([^)]+)\)/g,(m,p)=>Math.sin(Number(p)*Math.PI/180));
+    expr = expr.replace(/cos\(([^)]+)\)/g,(m,p)=>Math.cos(Number(p)*Math.PI/180));
+    expr = expr.replace(/tan\(([^)]+)\)/g,(m,p)=>Math.tan(Number(p)*Math.PI/180));
+    return eval(expr);
+  }catch{return null;}
+}
+
+async function botReply(message){
+  const msg = message.toLowerCase().trim();
+
+  // Aprendizado
+  if(msg.startsWith("ensina:")){
+    const parts = msg.split("=>");
+    if(parts.length==2){
+      const key = parts[0].replace("ensina:","").trim();
+      const value = parts[1].trim();
+      knowledge[key] = value;
+      localStorage.setItem("liaKnowledge",JSON.stringify(knowledge));
+      addMessage("Aprendi isso! 😊","bot"); speak("Aprendi isso!");
+      return;
+    }
+  }
+  if(knowledge[msg]){
+    addMessage(knowledge[msg],"bot"); speak(knowledge[msg]); return;
+  }
+
+  // Saudações
+  const saudacoes=["oi","olá","ola","bom dia","boa tarde","boa noite","salve"];
+  if(saudacoes.some(s=>msg.includes(s))){
+    let r="Olá! Como você está?";
+    if(msg.includes("bom dia")) r="Bom dia! Espero que seu dia seja ótimo 🌞";
+    if(msg.includes("boa tarde")) r="Boa tarde! Tudo bem por aí?";
+    if(msg.includes("boa noite")) r="Boa noite! Bons sonhos 🌙";
+    addMessage(r,"bot"); speak(r); return;
+  }
+
+  // Offline
+  if(!navigator.onLine){
+    // Apenas respostas locais e matemática
+    if(/[0-9\+\-\*\/\%\^\(\)]|sen|cos|tan/.test(msg)){
+      const res = evaluateMath(msg);
+      if(res!==null){ addMessage("O resultado é: "+res,"bot"); speak("O resultado é: "+res); return; }
+    }
+    addMessage("Estou offline, não consigo buscar informações externas 😞","bot");
+    speak("Estou offline, não consigo buscar informações externas");
+    return;
+  }
+
+  // Online
+  if(/[0-9\+\-\*\/\%\^\(\)]|sen|cos|tan/.test(msg)){
+    const res = evaluateMath(msg);
+    if(res!==null){ addMessage("O resultado é: "+res,"bot"); speak("O resultado é: "+res); return; }
+  }
+
+  // Wikipedia
+  try{
+    const res = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(msg)}`);
+    if(res.ok){
+      const data = await res.json();
+      if(data.extract && data.extract.length>0){
+        addMessage(data.extract,"bot"); speak(data.extract); return;
+      }
+    }
+  }catch{}
+
+  addMessage("Não encontrei nada sobre isso.","bot");
+  speak("Não encontrei nada sobre isso.");
+}
+
+// Enviar mensagens
+function send(){
+  const text=input.value.trim();
+  if(!text) return;
+  addMessage(text,"user");
+  input.value="";
+  botReply(text);
+}
+
+input.addEventListener("keydown",e=>{if(e.key==="Enter") send();});
+</script>
+</body>
+</html>
