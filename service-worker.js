@@ -1,34 +1,42 @@
+
 const CACHE_NAME = "lia-cache-v1";
 const urlsToCache = [
-  "index.html",
-  "musica.html",
-  "geo.html",
-  "jogo.html",
-  "manifest.json",
-  "icon192.png",
-  "icon512.png"
+  "/",
+  "/index.html",
+  "/chat.html",
+  "/config.html",
+  "/icon192.png",
+  "/icon512.png",
+  "/aa.css",
+  "/app.js"
 ];
 
+// Instalando SW e cache inicial
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
+// Ativando SW
 self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-        })
-      )
-    )
-  );
+  console.log("Service Worker ativado.");
 });
 
+// Interceptando requisições
 self.addEventListener("fetch", event => {
   event.respondWith(
     caches.match(event.request).then(response => response || fetch(event.request))
+  );
+});
+
+// Push notification (exemplo)
+self.addEventListener("push", event => {
+  const data = event.data.json();
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/icon192.png"
+    })
   );
 });
