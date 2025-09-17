@@ -1,14 +1,18 @@
 {
+  "id": "/index.html",
   "name": "LIA - Assistente Virtual",
   "short_name": "LIA",
   "description": "LIA é sua assistente virtual inteligente, que conversa, lembra tarefas e interage com você.",
   "start_url": "index.html",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "fullscreen", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#121212",
   "theme_color": "#212121",
   "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["utilities", "productivity"],
   "icons": [
     {
       "src": "icon192.png",
@@ -23,7 +27,22 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["utilities", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Abrir Chat",
+      "short_name": "Chat",
+      "description": "Abrir a janela de conversa com LIA",
+      "url": "/chat.html",
+      "icons": [{ "src": "icon192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Configurações",
+      "short_name": "Config",
+      "description": "Abrir as configurações da LIA",
+      "url": "/config.html",
+      "icons": [{ "src": "icon192.png", "sizes": "192x192" }]
+    }
+  ],
   "related_applications": [
     {
       "platform": "play",
